@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Powers</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #1a1a2e;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .game-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        h1 {
+            color: #eee;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        #gameCanvas {
+            border: 4px solid #16213e;
+            border-radius: 4px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .info-panel {
+            color: #eee;
+            font-size: 1.2em;
+            padding: 10px 20px;
+            background: #16213e;
+            border-radius: 8px;
+        }
+
+        .turn-white {
+            color: #fff;
+            text-shadow: 0 0 10px #fff;
+        }
+
+        .turn-black {
+            color: #aaa;
+        }
+
+        /* Power Panel Styles */
+        .power-panel {
+            width: 240px;
+            min-height: 300px;
+            background: linear-gradient(135deg, #1e1e3f 0%, #2d2d5a 100%);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.1);
+            opacity: 0;
+            transform: translateX(20px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .power-panel.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: all;
+        }
+
+        .power-panel.left-side {
+            order: -1;
+            transform: translateX(-20px);
+        }
+
+        .power-panel.left-side.active {
+            transform: translateX(0);
+        }
+
+        .power-panel-header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .power-panel-title {
+            color: #fff;
+            font-size: 1.1em;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .piece-info {
+            color: #a0a0c0;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+
+        .powers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .power-button {
+            background: linear-gradient(135deg, #3a3a6a 0%, #2a2a5a 100%);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .power-button:hover {
+            background: linear-gradient(135deg, #4a4a8a 0%, #3a3a7a 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(138, 43, 226, 0.3);
+        }
+
+        .power-button.active {
+            background: linear-gradient(135deg, #6b46c1 0%, #553c9a 100%);
+            border-color: #a78bfa;
+            box-shadow: 0 0 20px rgba(138, 43, 226, 0.5);
+        }
+
+        .power-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .power-key {
+            background: rgba(0,0,0,0.3);
+            color: #a78bfa;
+            font-size: 0.75em;
+            font-weight: bold;
+            padding: 3px 7px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .power-icon {
+            font-size: 1.2em;
+        }
+
+        .power-name {
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .power-description {
+            color: #9090b0;
+            font-size: 0.8em;
+            line-height: 1.4;
+        }
+
+        .no-piece-selected {
+            color: #6060a0;
+            text-align: center;
+            padding: 40px 20px;
+            font-style: italic;
+        }
+
+        /* Placeholder panels for layout */
+        .power-panel-placeholder {
+            width: 240px;
+            min-height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-wrapper">
+        <!-- Left power panel (for black's turn) -->
+        <div id="powerPanelLeft" class="power-panel left-side">
+            <div class="power-panel-header">
+                <div class="power-panel-title">⚔️ Powers</div>
+                <div class="piece-info" id="pieceInfoLeft">Select a piece</div>
+            </div>
+            <div class="powers-list" id="powersListLeft"></div>
+        </div>
+
+        <div class="game-container">
+            <h1>Chess Powers</h1>
+            <canvas id="gameCanvas" width="640" height="640"></canvas>
+            <div class="info-panel">
+                <span id="turnIndicator">White's Turn</span>
+            </div>
+        </div>
+
+        <!-- Right power panel (for white's turn) -->
+        <div id="powerPanelRight" class="power-panel">
+            <div class="power-panel-header">
+                <div class="power-panel-title">⚔️ Powers</div>
+                <div class="piece-info" id="pieceInfoRight">Select a piece</div>
+            </div>
+            <div class="powers-list" id="powersListRight"></div>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
